@@ -2,180 +2,126 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// TODO: Crea dos macros con el tamaño horizontal y vertical del mundo: OK
 #define W_SIZE_X 10
 #define W_SIZE_Y 10
 
-void world_init(bool *w_init);
-void world_print(bool *w_print);
-void world_step(bool *w1_step , bool *w2_step);
-int world_count_neighbors(bool *w_count , int X_count , int Y_count);
-bool world_get_cell(bool *w_get , int X_get , int Y_get);
-void world_copy(bool *w1_copy , bool *w2_copy);
+void world_init(bool world[W_SIZE_X][W_SIZE_Y]);
+void world_print(bool world[W_SIZE_X][W_SIZE_Y]);
+void world_step(bool world1[W_SIZE_X][W_SIZE_Y] , bool world2[W_SIZE_X][W_SIZE_Y]);
+int world_count_neighbors(bool world[W_SIZE_X][W_SIZE_Y], int x, int y);
+bool world_get_cell(bool world[W_SIZE_X][W_SIZE_Y], int x, int y);
+void world_copy(bool world1[W_SIZE_X][W_SIZE_Y], bool world2[W_SIZE_X][W_SIZE_Y]);
 
 int main()
 {
 	int i = 0;
-	// TODO: Declara dos mundos: OK
+
 	bool world_1[W_SIZE_X][W_SIZE_Y];
-	bool *puntero_world1 = &world_1[0][0];
-
 	bool world_2[W_SIZE_X][W_SIZE_Y];
-	bool *puntero_world2 = &world_2[0][0];
 
-	// TODO: inicializa el mundo: OK
-	world_init(puntero_world1);
+	world_init(world_1);
 	
 	do {
 		printf("\033cIteration %d\n", i++);
-		
-		// TODO: Imprime el mundo: OK
-		world_print(puntero_world1);
 
-		// TODO: Itera: OK
-		world_step(puntero_world1 , puntero_world2);
+		world_print(world_1);
+
+		world_step(world_1 , world_2);
 
 	} while (getchar() != 'q');
 
 	return EXIT_SUCCESS;
 }
 
-void world_init(bool *w_init)
+void world_init(bool world[W_SIZE_X][W_SIZE_Y])
 {
-	// TODO: Poner el mundo a false: OK
-	for (int i = 0 ; i < (W_SIZE_Y * W_SIZE_X) ; i++)
+	// Init a false del mundo
+	for (int i = 0 ; i < W_SIZE_X ; i++)
 		{
-			*(w_init + i) = false;
+			for (int j = 0; j < W_SIZE_Y; ++j)
+			{
+				world[i][j] = false;
+			}
 		}
-
-	/* TODO: Inicializar con el patrón del glider: OK
-	 *           . # .
-	 *           . . #
-	 *           # # #
-	 */
-	*(w_init + 1) = true;
-	*(w_init + W_SIZE_X + 2 ) = true;	
-	*(w_init + 2 * W_SIZE_X ) = true;
-	*(w_init + 2 * W_SIZE_X + 1 ) = true;	
-	*(w_init + 2 * W_SIZE_X + 2 ) = true;		
+	// Init de un Glider	
+	world[0][1] = true;
+	world[1][2] = true;	
+	world[2][0] = true;
+	world[2][1] = true;	
+	world[2][2] = true;		
 }
 
-void world_print(bool *w_print)
+void world_print(bool world[W_SIZE_X][W_SIZE_Y])
 {
-	// TODO: Imprimir el mundo por consola. Sugerencia: OK
-	/*
-	 *     . # . . . . . . . .
-	 *     . . # . . . . . . .
-	 *     # # # . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 *     . . . . . . . . . .
-	 */
-	for (int i = 0 ; i < W_SIZE_Y ; i++)
+	for (int i = 0 ; i < W_SIZE_X ; i++)
 	{
-		for (int j = 0; j < W_SIZE_X; ++j)
+		for (int j = 0; j < W_SIZE_Y; ++j)
 		{
-			printf("%c " , *(w_print + (i * W_SIZE_X + j) ) == 0 ? '.' : '#' );	
+			printf("%c " , world[i][j] == 0 ? '.' : '#' );	
 		}
 		printf("\n");
 		
 	}
 }
 
-void world_step(bool *w1_step , bool *w2_step)
+void world_step(bool world1[W_SIZE_X][W_SIZE_Y] , bool world2[W_SIZE_X][W_SIZE_Y])
 {
-	/*
-	 * TODO: OK
-	 * - Recorrer el mundo célula por célula comprobando si nace, sobrevive
-	 *   o muere.
-	 *
-	 * - No se puede cambiar el estado del mundo a la vez que se recorre:
-	 *   Usar un mundo auxiliar para guardar el siguiente estado.
-	 *
-	 * - Copiar el mundo auxiliar sobre el mundo principal
-	 */
-	for (int i = 0 ; i < W_SIZE_Y ; i++)
+	for (int x = 0 ; x < W_SIZE_X ; x++)
 	{
-		for (int j = 0; j < W_SIZE_X; ++j)
+		for (int y = 0; y < W_SIZE_Y; ++y)
 		{
-		*(w2_step + (i * W_SIZE_X + j)) = world_get_cell(w1_step , j , i);
+			int neighbors = world_count_neighbors(world1, x, y);	
+			(world2[x][y] = (world1[x][y] && neighbors == 2) || neighbors == 3);
 		}
 	}
-
-	//Copiar el mundo auxiliar sobre el mundo principal: OK
-
-	world_copy(w1_step , w2_step);
-
+	// copia del mundo auxiliar al mundo principal
+	world_copy(world1 , world2);
 }
 
-int world_count_neighbors(bool *w_count , int X_count , int Y_count)
+int world_count_neighbors(bool world[W_SIZE_X][W_SIZE_Y] , int x , int y)
 {
 	int counter = 0;
 
-	if ( *(w_count + (Y_count * W_SIZE_X) + X_count - 1) && (X_count > 0))
-	{
-		counter++;
-	}
-	if ( *(w_count + (Y_count * W_SIZE_X) + X_count + 1) && (X_count < W_SIZE_X - 1))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count - 1)  * W_SIZE_X) + X_count - 1) && (X_count > 0) && (Y_count > 0))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count - 1)  * W_SIZE_X) + X_count) && (Y_count > 0))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count - 1)  * W_SIZE_X) + X_count +1) && (Y_count > 0))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count + 1)  * W_SIZE_X) + X_count - 1)  && (X_count > 0) && (Y_count < W_SIZE_Y - 1))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count + 1)  * W_SIZE_X) + X_count) && (Y_count < W_SIZE_Y - 1))
-	{
-		counter++;
-	}
-	if ( *(w_count + ((Y_count + 1)  * W_SIZE_X) + X_count +1) && (X_count < W_SIZE_X - 1 ) && (Y_count < W_SIZE_Y - 1 ))
-	{
-		counter++;
-	}
+	// control de los lados
+	counter += world_get_cell(world, x , y - 1);
+	counter += world_get_cell(world, x , y + 1);
+	// Control de las celdas superiores
+	counter += world_get_cell(world, x + 1, y - 1);
+	counter += world_get_cell(world, x + 1, y);
+	counter += world_get_cell(world, x + 1, y + 1);
+	// Control de las celdas inferiores
+	counter += world_get_cell(world, x - 1, y - 1);
+	counter += world_get_cell(world, x - 1, y);
+	counter += world_get_cell(world, x - 1, y + 1);
 
-	// Devuelve el número de vecinos: OK
 	return counter;
 }
 
-bool world_get_cell(bool *w_get , int X_get , int Y_get)
+bool world_get_cell(bool world[W_SIZE_X][W_SIZE_Y] , int x , int y)
 {
-	/*
-	 * TODO: Devuelve el estado de la célula de posición indicada: OK
-	 * (¡cuidado con los límites del array!)
-	 */
-	int neighbors = world_count_neighbors(w_get , X_get , Y_get);
-	
-	if ( *(w_get + (Y_get * W_SIZE_X) + X_get) && ( neighbors == 2 || neighbors == 3) || !*(w_get + (Y_get * W_SIZE_X) + X_get) && neighbors == 3 )
-	 {
-	 	return true;
-	 } 
+	// redireccion de la coordenada para un mundo toroidal
+	if (x == -1)
+		x = W_SIZE_X - 1;
 
-	 return false;
+	if (x == W_SIZE_X) 
+		x = 0;
+
+	if (y == -1)
+		y = W_SIZE_Y -1;
+
+	if (y == W_SIZE_Y) 
+		y = 0;
+	
+	return world[x][y];
 }
 
-void world_copy(bool *w1_copy , bool *w2_copy)
+void world_copy(bool world1[W_SIZE_X][W_SIZE_Y] , bool world2[W_SIZE_X][W_SIZE_Y])
 {
-	// TODO: copia el mundo segundo mundo sobre el primero: OK
-	for (int i = 0 ; i < (W_SIZE_Y * W_SIZE_X) ; i++)
+	for (int i = 0 ; i < W_SIZE_X ; i++)
 		{
-			*(w1_copy + i) = *(w2_copy + i);
+			for (int j = 0; j < W_SIZE_Y; ++j)
+			{
+				world1[i][j] = world2[i][j];	
+			}
 		}
-		
-	
 }
