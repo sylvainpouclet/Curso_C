@@ -101,17 +101,16 @@ bool world_get_cell(bool world[W_SIZE_X][W_SIZE_Y] , int x , int y)
 {
 	// redireccion de la coordenada para un mundo toroidal
 	if (x == -1)
-		x = W_SIZE_X - 1;
+			x = W_SIZE_X - 1;
 
-	if (x == W_SIZE_X) 
-		x = 0;
+		else if (x == W_SIZE_X)
+				x = 0;
 
 	if (y == -1)
-		y = W_SIZE_Y -1;
+			y = W_SIZE_Y - 1;
+		else if (y == W_SIZE_Y)
+				y = 0;
 
-	if (y == W_SIZE_Y) 
-		y = 0;
-	
 	return world[x][y];
 }
 
