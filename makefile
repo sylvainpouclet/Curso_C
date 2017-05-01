@@ -14,5 +14,5 @@ gol.o : gol.c gol.h
 	gcc -c gol.c
 
 clean: 
-		rm *.o
-		rm game_of_life
+	rm *.o
+	rm game_of_life

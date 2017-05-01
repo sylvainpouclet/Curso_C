@@ -6,22 +6,15 @@
 int main()
 {
 	int i = 0;
+	struct world w;
 
-	bool world_1[W_SIZE_X][W_SIZE_Y];
-	bool world_2[W_SIZE_X][W_SIZE_Y];
+	world_init(&w);
 
-	world_init(world_1);
-	
 	do {
 		printf("\033cIteration %d\n", i++);
-
-		world_print(world_1);
-
-		world_step(world_1 , world_2);
-
+		world_print(&w);
+		world_step(&w);
 	} while (getchar() != 'q');
 
-	return EXIT_SUCCESS;
+	return EXIT_SUCCESS;	
 }
-
-
