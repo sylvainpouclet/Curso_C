@@ -5,16 +5,23 @@
 
 int main()
 {
-	int i = 0;
-	struct world w;
 
-	world_init(&w);
+	int i = 0;
+
+	struct world *w  = world_alloc(W_SIZE_X , W_SIZE_Y);
+	if (!w) {
+		perror("Can't allocate world");
+		exit(EXIT_FAILURE);
+	}
 
 	do {
 		printf("\033cIteration %d\n", i++);
-		world_print(&w);
-		world_step(&w);
+		world_print(w);
+		world_iterate(w);
+
 	} while (getchar() != 'q');
+
+	world_free(w);
 
 	return EXIT_SUCCESS;	
 }
