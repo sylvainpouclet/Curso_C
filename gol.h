@@ -3,6 +3,8 @@
 
 #define W_SIZE_X 10
 #define W_SIZE_Y 10
+#define W_WORLD_MAIN 0
+#define W_WORLD_AUX 1
 
 struct world;
 

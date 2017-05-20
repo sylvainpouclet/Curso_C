@@ -13,7 +13,7 @@ struct world
 
 static void fix_coords(const struct world *w, int *x, int *y);
 static bool get_cell(const struct world *w, int x, int y);
-static void set_cell(struct world *w, int x, int y, bool val);
+static void set_cell(struct world *w, int buf, int x, int y, bool val);
 static int count_neighbors(const struct world *w, int x, int y);
 
 
@@ -24,25 +24,30 @@ struct world *world_alloc(int size_x, int size_y)
 	if (!w)
 		return NULL;
 
-	w->cells[0] = (bool *)malloc((size_x * size_y) * sizeof(bool));
-	if (!w->cells[0])
+	w->cells[W_WORLD_MAIN] = (bool *)malloc((size_x * size_y) * sizeof(bool));
+	if (!w->cells[W_WORLD_MAIN]){
+		free(w);
 		return NULL;
+	}
 	
-	w->cells[1] = (bool *)malloc((size_x * size_y) * sizeof(bool));
-	if (!w->cells[1])
+	w->cells[W_WORLD_AUX] = (bool *)malloc((size_x * size_y) * sizeof(bool));
+	if (!w->cells[W_WORLD_MAIN]){
+		free(w->cells[W_WORLD_MAIN]);
+		free(w);
 		return NULL;
+	}
 	
  	// Init a false del mundo
 	for (int x = 0 ; x < W_SIZE_X ; x++)
 		for (int y = 0; y < W_SIZE_Y; ++y)
-			*(w->cells[0] + (x * W_SIZE_Y + y)) = false;
+			set_cell(w, W_WORLD_MAIN, x, y, false);
 
   	// Init de un Glider	
-	*(w->cells[0] + (0 * W_SIZE_Y + 1)) = true;
-	*(w->cells[0] + (1 * W_SIZE_Y + 2)) = true;	
-	*(w->cells[0] + (2 * W_SIZE_Y + 0)) = true;
-	*(w->cells[0] + (2 * W_SIZE_Y + 1)) = true;	
-	*(w->cells[0] + (2 * W_SIZE_Y + 2)) = true;
+	set_cell(w, W_WORLD_MAIN, 0, 1 , true);
+	set_cell(w, W_WORLD_MAIN, 1, 2 , true);
+	set_cell(w, W_WORLD_MAIN, 2, 0 , true);
+	set_cell(w, W_WORLD_MAIN, 2, 1 , true);
+	set_cell(w, W_WORLD_MAIN, 2, 2 , true);
 
 	return w;
 }
@@ -50,8 +55,8 @@ struct world *world_alloc(int size_x, int size_y)
 
 void world_free(struct world *w)
 {
-	free(w->cells[0]);
-	free(w->cells[1]);
+	free(w->cells[W_WORLD_MAIN]);
+	free(w->cells[W_WORLD_AUX]);
 	free(w);
 }
 
@@ -68,16 +73,16 @@ void world_iterate(struct world *w)
 {
 	for (int x = 0 ; x < W_SIZE_X ; x++) {
 		for (int y = 0; y < W_SIZE_Y; ++y) {
-			int neighbors = count_neighbors(w, x, y);	
-			set_cell(w, x, y, ((*(w->cells[0] + (x * W_SIZE_Y + y)) && neighbors == 2) || neighbors == 3) );
+			int neighbors = count_neighbors(w, x, y);
+			set_cell(w, W_WORLD_AUX, x, y, ((get_cell(w, x, y) && neighbors == 2) || neighbors == 3) );
 		}
 	}
 	
-	// copia del mundo auxiliar al mundo principal
+	// intercambio de puntero entre el mundo auxiliar y el mundo principal
 	bool *transfer_mundo;
-	transfer_mundo = w->cells[0];
-	w->cells[0] = w->cells[1];
-	w->cells[1] = transfer_mundo;
+	transfer_mundo = w->cells[W_WORLD_MAIN];
+	w->cells[W_WORLD_MAIN] = w->cells[W_WORLD_AUX];
+	w->cells[W_WORLD_AUX] = transfer_mundo;
 }
 
 static void fix_coords(const struct world *w, int *x, int *y)
@@ -97,13 +102,13 @@ static void fix_coords(const struct world *w, int *x, int *y)
 static bool get_cell(const struct world *w, int x, int y)
 {
 	fix_coords(w, &x, &y);
-	return *(w->cells[0] + (x * W_SIZE_Y + y));
+	return *(w->cells[W_WORLD_MAIN] + (x * W_SIZE_Y + y));
 }
 
-static void set_cell(struct world *w, int x, int y, bool val)
+static void set_cell(struct world *w, int buf, int x, int y, bool val)
 {
 	fix_coords(w, &x, &y);
-	*(w->cells[1] + (x * W_SIZE_Y + y)) = val;
+	*(w->cells[buf] + (x * W_SIZE_Y + y)) = val;
 }
 
 static int count_neighbors(const struct world *w, int x, int y)
