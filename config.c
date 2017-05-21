@@ -5,7 +5,6 @@
 #include <string.h>
 #include <getopt.h>
 
-
 static const char *init_mode_str[] = {
 	[CFG_DEFAULT] = "default",
 	[CFG_GLIDER]  = "glider",
@@ -92,11 +91,10 @@ void config_print_usage(const char *arg0)
 		, arg0);
 
 	// Print all initialization modes
-	printf("\ninitialization modes: \n"
-		"\t%s\n"
-		"\t%s\n"
-		"\t%s\n"
-		, init_mode_str[0], init_mode_str[1], init_mode_str[2]);
+	printf("\ninitialization modes: \n");
+	int i;
+	for (i = 0; i < CFG_N_INIT_MODES; i++)
+		printf("\t%s\n",init_mode_str[i]);
 }
 
 void config_print(const struct config *config)
