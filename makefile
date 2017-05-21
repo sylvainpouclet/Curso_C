@@ -1,17 +1,15 @@
-CFLAGS = -Wall -Error
+CFLAGS = -Wall -Wextra -Werror -Wfatal-errors -g 
+OBJS = main.o gol.o config.o
 
 .PHONY : all clean
 
 all : game_of_life
 
-game_of_life : main.o gol.o
-	gcc main.o gol.o -o game_of_life
+game_of_life : $(OBJS)
+	cc $(CFLAGS)$^ -o $@
 
-main.o : main.c gol.h
-	gcc -c main.c
-
-gol.o : gol.c gol.h
-	gcc -c gol.c
+%.o : %.c
+	gcc $(CFLAGS) -c $<
 
 clean: 
 	rm *.o

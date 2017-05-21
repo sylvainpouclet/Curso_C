@@ -1,14 +1,13 @@
 #ifndef _GOL_H_
 #define _GOL_H_
 
-#define W_SIZE_X 10
-#define W_SIZE_Y 10
 #define W_WORLD_MAIN 0
 #define W_WORLD_AUX 1
+#include "config.h"
 
 struct world;
 
-struct world *world_alloc(int size_x, int size_y);
+struct world *world_alloc(struct config *config);
 void world_free(struct world *w);
 
 void world_print(const struct world *w);
