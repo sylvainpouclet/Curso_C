@@ -17,14 +17,15 @@ static bool get_cell(const struct world *w, int x, int y);
 static void set_cell(struct world *w, int buf, int x, int y, bool val);
 static int count_neighbors(const struct world *w, int x, int y);
 
-
-
 struct world *world_alloc(struct config *config)
 {
 	
 	struct world *w = (struct world *)malloc(sizeof(struct world));
 	if (!w)
 		return NULL;
+	
+	w->size_x = config->size_x;
+	w->size_y = config->size_y;
 
 	w->cells[W_WORLD_MAIN] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
 	if (!w->cells[W_WORLD_MAIN]){
@@ -39,9 +40,6 @@ struct world *world_alloc(struct config *config)
 		return NULL;
 	}
 	
-	w->size_x = config->size_x;
-	w->size_y = config->size_y;
-
  	// Init a false del mundo
 	for (int x = 0 ; x < w->size_x ; x++)
 		for (int y = 0; y < w->size_y; ++y)
@@ -73,7 +71,6 @@ struct world *world_alloc(struct config *config)
 
 	return w;
 }
-
 
 void world_free(struct world *w)
 {
