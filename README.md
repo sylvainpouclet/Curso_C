@@ -5,6 +5,7 @@ Usage:
 	[-x|--size_x <num>
 	[-y|--size_y <num>
 	[-i|--init <init_mode>
+	[file]
 
 	initialization modes: 
 	default
@@ -17,3 +18,5 @@ Exemples:
 ./game_of_life -x 20 -y 20 -i random
 
 ./game_of_life -x 20 -y 20
+
+./game_of_life config.txt
