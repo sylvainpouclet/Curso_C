@@ -40,7 +40,7 @@ struct world *world_alloc(struct config *config)
 		return NULL;
 	}
 	
- 	// Init a false del mundo
+	// Init a false del mundo
 	int x, y;
 	for (x = 0 ; x < w->size_x ; x++)
 		for (y = 0; y < w->size_y; ++y)
@@ -70,7 +70,12 @@ struct world *world_alloc(struct config *config)
 				set_cell(w, W_WORLD_MAIN, x, y, rand()%2);
 	}
 
+	if (config->flag_restore){
+		world_restore(config, w);
+	}
+	
 	return w;
+	
 }
 
 void world_free(struct world *w)
@@ -149,6 +154,76 @@ static int count_neighbors(const struct world *w, int x, int y)
 	return counter;
 }
 
+void world_save(struct config *config, struct world *w)
+{
+	FILE *f;
+	f = fopen(config->save_file, "w");
+	if (!f){
+		perror("Error al abrir el fichero para guardar el mundo\n");
+		exit(EXIT_FAILURE);
+	}
 
+	char *world_to_save = (char *)malloc((w->size_x * w->size_y) * sizeof(char));
+	if (!world_to_save){
+		perror("Error al crear el buffer para guardar el mundo\n");
+		exit(EXIT_FAILURE);
+	}
 
+	// Creación de la cadena a guardar
+	int x, y;
+	for (x = 0 ; x < w->size_x ; x++) {
+		for (y = 0; y < w->size_y; ++y)	
+			if (get_cell(w, x, y))
+				world_to_save[x * w->size_y + y] = '1';
+			else 
+				world_to_save[x * w->size_y + y] = '0';
+	}
+	
+	fwrite(world_to_save, sizeof(char), (w->size_x * w->size_y), f);
 
+	free(world_to_save);
+
+	fclose(f);
+
+	printf("Game saved in file: %s\n", config->save_file);
+
+}
+
+void world_restore(struct config *config, struct world *w)
+{
+	FILE *f;
+	f = fopen(config->restore_file, "r");
+	if (!f){
+		perror("Error al abrir el fichero para restaurar el mundo\n");
+
+	} else {	
+		char lectura[w->size_x * w->size_y];
+
+		fread(lectura, sizeof (char), (w->size_x * w->size_y), f); 
+		
+		// Init del mundo
+		char *world_to_restore = (char *)malloc((w->size_x * w->size_y) * sizeof(char));
+		if (!world_to_restore){
+			perror("Error al crear el buffer para recuperar el mundo\n");
+			exit(EXIT_FAILURE);
+		}
+
+		int x, y;
+		for (x = 0 ; x < w->size_x ; x++){
+			for (y = 0; y < w->size_y; ++y){
+				if ((lectura[(x * w->size_y) + y]) == '1'){
+					set_cell(w, W_WORLD_MAIN, x, y, true);
+				}
+				else if (lectura[x * w->size_y + y] == '0'){
+					set_cell(w, W_WORLD_MAIN, x, y, false);	
+				}
+			}
+		}
+	
+		fclose(f);
+
+		free(world_to_restore);
+
+		printf("Game restored from file: %s\n", config->restore_file);
+	}
+}

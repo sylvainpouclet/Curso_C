@@ -7,6 +7,7 @@
 int main(int argc, char *argv[])
 {
 	int i = 0;
+	bool flag = false;
 	
 	struct config config;
 	struct world * w;
@@ -26,12 +27,19 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
  
-	do {
-		printf("\033cIteration %d\n", i++); 
+	do {		
+		if (flag)
+			world_iterate(w);
+
+		printf("\033cIteration %d\n", i++);  
 		world_print(w);
-		world_iterate(w);
+		flag = true;
+
 	} while (getchar() != 'q');
  
+ 	if (config.flag_save)
+ 		world_save(&config, w);
+
 	world_free(w);
 
 	return EXIT_SUCCESS;

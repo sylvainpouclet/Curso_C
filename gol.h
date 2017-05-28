@@ -9,6 +9,8 @@ struct world;
 
 struct world *world_alloc(struct config *config);
 void world_free(struct world *w);
+void world_save(struct config *config, struct world *w);
+void world_restore(struct config *config, struct world *w);
 
 void world_print(const struct world *w);
 void world_iterate(struct world *w);

@@ -12,7 +12,7 @@ enum cfg_init_mode {
 };
 
 #define CFG_N_INIT_MODES _CFG_MAX_
-#define LINE_LEN 10
+#define LINE_LEN 30
 
 struct config {
 	bool show_help;
@@ -20,6 +20,11 @@ struct config {
 	int size_y;
 	enum cfg_init_mode init_mode;
 	char *cfg_file;
+	char save_file[LINE_LEN];
+	bool flag_save;
+	char restore_file[LINE_LEN];
+	bool flag_restore;
+
 };
 
 int config_parse_argv(struct config *config, int argc, char *argv[]);
