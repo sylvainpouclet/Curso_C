@@ -10,13 +10,16 @@ enum cfg_init_mode {
 	CFG_RANDOM,
 	_CFG_MAX_,
 };
+
 #define CFG_N_INIT_MODES _CFG_MAX_
+#define LINE_LEN 10
 
 struct config {
 	bool show_help;
 	int size_x;
 	int size_y;
 	enum cfg_init_mode init_mode;
+	char *cfg_file;
 };
 
 int config_parse_argv(struct config *config, int argc, char *argv[]);

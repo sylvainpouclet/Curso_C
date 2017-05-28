@@ -22,6 +22,8 @@ static const struct option long_options[] =
 
 static bool check_config(const struct config *config);
 static enum cfg_init_mode str2init_mode(const char *opt);
+static bool load_config(struct config *config);
+
 
 int config_parse_argv(struct config *config, int argc, char *argv[])
 {
@@ -33,6 +35,7 @@ int config_parse_argv(struct config *config, int argc, char *argv[])
 	config->size_x = 0;
 	config->size_y = 0;
 	config->init_mode = 0;
+	config->cfg_file = NULL;
 
 	while ((c = getopt_long(argc, argv, "hx:y:i:", long_options,
 				&option_index)) != -1) {
@@ -52,6 +55,17 @@ int config_parse_argv(struct config *config, int argc, char *argv[])
 		default:
 			printf("Error\n");
 			exit(EXIT_FAILURE);
+		}
+	}
+
+	// Check for config file name
+	if (optind != argc) {
+		if (optind == argc - 1) {
+			config->cfg_file = argv[optind];
+			if (!load_config(config))
+				return false;
+		} else {
+			return false;
 		}
 	}
 
@@ -88,6 +102,7 @@ void config_print_usage(const char *arg0)
 		"\t[-x|--size_x <num>]\n"
 		"\t[-y|--size_y <num>]\n"
 		"\t[-i|--init <init_mode>]\n"
+		"\t[file]\n"
 		, arg0);
 
 	// Print all initialization modes
@@ -95,6 +110,7 @@ void config_print_usage(const char *arg0)
 	int i;
 	for (i = 0; i < CFG_N_INIT_MODES; i++)
 		printf("\t%s\n",init_mode_str[i]);
+	printf("\ninitialization with a config file:\n ./game_of_life file\n");
 }
 
 void config_print(const struct config *config)
@@ -106,4 +122,50 @@ void config_print(const struct config *config)
 	printf("\tinit_mode = %d(%s)\n",
 		config->init_mode, init_mode_str[config->init_mode]);
 	printf("}\n");
+}
+
+static bool load_config(struct config *config)
+{
+	FILE *file = fopen(config->cfg_file, "r");
+	if (!file){
+		perror("Error opening config file");
+		return false;
+	}
+	
+	char line[LINE_LEN];
+	
+	// Size x
+	fgets(line, LINE_LEN, file);
+	if (ferror(file)) {
+		perror("Error reading config file");
+		return false;
+	}
+	config->size_x = strtol(line, NULL, 0);
+
+	// Size y
+	fgets(line, LINE_LEN, file);
+	if (ferror(file)) {
+		perror("Error reading config file");
+		return false;
+	}
+	config->size_y = strtol(line, NULL, 0);
+
+	// init mode
+	fgets(line, LINE_LEN, file);
+	if (ferror(file)) {
+		perror("Error reading config file");
+		return false;
+	}
+
+	// Eliminacion del caracter de salto de linea
+	char *ptr_scan = NULL;
+	ptr_scan = strchr(line, '\n');
+	if (ptr_scan != NULL) 
+		*ptr_scan = '\0'; 
+
+	config->init_mode = str2init_mode((const char *)line);
+
+	fclose (file);
+
+	return true;
 }

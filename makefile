@@ -6,7 +6,7 @@ OBJS = main.o gol.o config.o
 all : game_of_life
 
 game_of_life : $(OBJS)
-	cc $(CFLAGS)$^ -o $@
+	cc $(CFLAGS) $^ -o $@
 
 %.o : %.c
 	gcc $(CFLAGS) -c $<
@@ -14,3 +14,9 @@ game_of_life : $(OBJS)
 clean: 
 	rm *.o
 	rm game_of_life
+
+check_leak:
+	valgrind --leak-check=full ./game_of_life -x 20 -y 20 -i glider
+
+run:
+	./game_of_life -x 20 -y 20 -i glider

@@ -41,8 +41,9 @@ struct world *world_alloc(struct config *config)
 	}
 	
  	// Init a false del mundo
-	for (int x = 0 ; x < w->size_x ; x++)
-		for (int y = 0; y < w->size_y; ++y)
+	int x, y;
+	for (x = 0 ; x < w->size_x ; x++)
+		for (y = 0; y < w->size_y; ++y)
 			set_cell(w, W_WORLD_MAIN, x, y, false);
 
 	if (config->init_mode == CFG_DEFAULT){
@@ -63,9 +64,9 @@ struct world *world_alloc(struct config *config)
 	else if(config->init_mode == CFG_RANDOM){
 	// Init a random del mundo
 		srand(time(0)); //use current time as seed for random generator
-
-		for (int x = 0 ; x < w->size_x ; x++)
-			for (int y = 0; y < w->size_y; ++y)
+		int x, y;
+		for (x = 0 ; x < w->size_x ; x++)
+			for (y = 0; y < w->size_y; ++y)
 				set_cell(w, W_WORLD_MAIN, x, y, rand()%2);
 	}
 
@@ -81,8 +82,9 @@ void world_free(struct world *w)
 
 void world_print(const struct world *w)
 {
-	for (int x = 0 ; x < w->size_x ; x++) {
-		for (int y = 0; y < w->size_y; ++y)	
+	int x, y;
+	for (x = 0 ; x < w->size_x ; x++) {
+		for (y = 0; y < w->size_y; ++y)	
 		printf("%c " , get_cell(w, x, y) == 0 ? '.' : '#' );
 		printf("\n");	
 	}
@@ -90,8 +92,9 @@ void world_print(const struct world *w)
 
 void world_iterate(struct world *w)
 {
-	for (int x = 0 ; x < w->size_x ; x++) {
-		for (int y = 0; y < w->size_y; ++y) {
+	int x, y;
+	for (x = 0 ; x < w->size_x ; x++) {
+		for (y = 0; y < w->size_y; ++y) {
 			int neighbors = count_neighbors(w, x, y);
 			set_cell(w, W_WORLD_AUX, x, y, ((get_cell(w, x, y) && neighbors == 2) || neighbors == 3) );
 		}
