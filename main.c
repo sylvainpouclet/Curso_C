@@ -31,13 +31,13 @@ int main(int argc, char *argv[])
 		if (flag)
 			world_iterate(w);
 
-		printf("\033cIteration %d\n", i++);  
+		printf("\033cIteration %d\n", i++); 
 		world_print(w);
 		flag = true;
 
 	} while (getchar() != 'q');
  
- 	if (config.flag_save)
+ 	if (config.save_file)
  		world_save(&config, w);
 
 	world_free(w);

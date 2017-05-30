@@ -19,9 +19,8 @@ Exemples:
 
 ./game_of_life -x 20 -y 20 -i random
 
-./game_of_life -x 20 -y 20 -r game.txt -s game.txt
+./game_of_life -x 20 -y 20 -i glider -s game.txt
+
+./game_of_life -r game.txt
 
 ./game_of_life config.txt
-
-Warning:
-The configuration of the world's size (-x -y) must be iqual to the size defined for the restore file.  

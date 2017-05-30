@@ -20,11 +20,8 @@ struct config {
 	int size_y;
 	enum cfg_init_mode init_mode;
 	char *cfg_file;
-	char save_file[LINE_LEN];
-	bool flag_save;
-	char restore_file[LINE_LEN];
-	bool flag_restore;
-
+	char *save_file;
+	char *restore_file;
 };
 
 int config_parse_argv(struct config *config, int argc, char *argv[]);

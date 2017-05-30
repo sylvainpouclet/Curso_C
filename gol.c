@@ -7,9 +7,9 @@
 
 struct world
 {
-	bool *cells[2];
 	int size_x;
 	int size_y;
+	bool *cells[2];
 };
 
 static void fix_coords(const struct world *w, int *x, int *y);
@@ -19,63 +19,94 @@ static int count_neighbors(const struct world *w, int x, int y);
 
 struct world *world_alloc(struct config *config)
 {
-	
 	struct world *w = (struct world *)malloc(sizeof(struct world));
 	if (!w)
 		return NULL;
 	
-	w->size_x = config->size_x;
-	w->size_y = config->size_y;
+	if (config->restore_file){	
 
-	w->cells[W_WORLD_MAIN] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
-	if (!w->cells[W_WORLD_MAIN]){
-		free(w);
-		return NULL;
-	}
+		FILE *f;	
+		f = fopen(config->restore_file, "r");
+		if (!f)
+			perror("Error al abrir el fichero para restaurar el mundo\n");
 	
-	w->cells[W_WORLD_AUX] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
-	if (!w->cells[W_WORLD_MAIN]){
-		free(w->cells[W_WORLD_MAIN]);
-		free(w);
-		return NULL;
-	}
-	
-	// Init a false del mundo
-	int x, y;
-	for (x = 0 ; x < w->size_x ; x++)
-		for (y = 0; y < w->size_y; ++y)
-			set_cell(w, W_WORLD_MAIN, x, y, false);
+		fread(&w->size_x, sizeof(int), 1, f);
+		fread(&w->size_y, sizeof(int), 1, f);
 
-	if (config->init_mode == CFG_DEFAULT){
-		// Init de un bloque	
-		set_cell(w, W_WORLD_MAIN, 1, 1 , true);
-		set_cell(w, W_WORLD_MAIN, 1, 2 , true);
-		set_cell(w, W_WORLD_MAIN, 2, 1 , true);
-		set_cell(w, W_WORLD_MAIN, 2, 2 , true);
-	}
-	else if (config->init_mode == CFG_GLIDER){
-		// Init de un Glider	
-		set_cell(w, W_WORLD_MAIN, 0, 1 , true);
-		set_cell(w, W_WORLD_MAIN, 1, 2 , true);
-		set_cell(w, W_WORLD_MAIN, 2, 0 , true);
-		set_cell(w, W_WORLD_MAIN, 2, 1 , true);
-		set_cell(w, W_WORLD_MAIN, 2, 2 , true);
-	}
-	else if(config->init_mode == CFG_RANDOM){
-	// Init a random del mundo
-		srand(time(0)); //use current time as seed for random generator
+		if ((w->size_x < 1) | (w->size_y < 1)){
+			perror("Error en las dimensiones del mundo restaurado\n");
+			free(w);
+			return NULL;
+		}
+
+		w->cells[W_WORLD_MAIN] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
+		if (!w->cells[W_WORLD_MAIN]){
+			free(w);
+		return NULL;
+		}
+	
+		w->cells[W_WORLD_AUX] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
+		if (!w->cells[W_WORLD_MAIN]){
+			free(w->cells[W_WORLD_MAIN]);
+			free(w);
+			return NULL;
+		}
+
+		fread(w->cells[W_WORLD_MAIN], sizeof(bool), w->size_x * w->size_y, f);
+
+		fclose(f);
+
+		printf("Game restored from file: %s\n", config->restore_file);	
+		
+	} else {
+		w->size_x = config->size_x;
+		w->size_y = config->size_y;	
+		
+		w->cells[W_WORLD_MAIN] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
+		if (!w->cells[W_WORLD_MAIN]){
+			free(w);
+			return NULL;
+		}
+		
+		w->cells[W_WORLD_AUX] = (bool *)malloc((w->size_x * w->size_y) * sizeof(bool));
+		if (!w->cells[W_WORLD_MAIN]){
+			free(w->cells[W_WORLD_MAIN]);
+			free(w);
+			return NULL;
+		}
+
+		// Init a false del mundo
 		int x, y;
 		for (x = 0 ; x < w->size_x ; x++)
 			for (y = 0; y < w->size_y; ++y)
-				set_cell(w, W_WORLD_MAIN, x, y, rand()%2);
-	}
+				set_cell(w, W_WORLD_MAIN, x, y, false);
 
-	if (config->flag_restore){
-		world_restore(config, w);
-	}
-	
+		if (config->init_mode == CFG_DEFAULT){
+				// Init de un bloque	
+			set_cell(w, W_WORLD_MAIN, 1, 1 , true);	
+			set_cell(w, W_WORLD_MAIN, 1, 2 , true);
+			set_cell(w, W_WORLD_MAIN, 2, 1 , true);
+			set_cell(w, W_WORLD_MAIN, 2, 2 , true);
+		}
+		else if (config->init_mode == CFG_GLIDER){
+			// Init de un Glider	
+			set_cell(w, W_WORLD_MAIN, 0, 1 , true);
+			set_cell(w, W_WORLD_MAIN, 1, 2 , true);
+			set_cell(w, W_WORLD_MAIN, 2, 0 , true);
+			set_cell(w, W_WORLD_MAIN, 2, 1 , true);
+			set_cell(w, W_WORLD_MAIN, 2, 2 , true);
+		}
+		else if(config->init_mode == CFG_RANDOM){
+		// Init a random del mundo
+			srand(time(0)); //use current time as seed for random generator
+			int x, y;
+			for (x = 0 ; x < w->size_x ; x++)
+				for (y = 0; y < w->size_y; ++y)
+					set_cell(w, W_WORLD_MAIN, x, y, rand()%2);
+		}
+		}
+
 	return w;
-	
 }
 
 void world_free(struct world *w)
@@ -162,68 +193,12 @@ void world_save(struct config *config, struct world *w)
 		perror("Error al abrir el fichero para guardar el mundo\n");
 		exit(EXIT_FAILURE);
 	}
-
-	char *world_to_save = (char *)malloc((w->size_x * w->size_y) * sizeof(char));
-	if (!world_to_save){
-		perror("Error al crear el buffer para guardar el mundo\n");
-		exit(EXIT_FAILURE);
-	}
-
-	// Creación de la cadena a guardar
-	int x, y;
-	for (x = 0 ; x < w->size_x ; x++) {
-		for (y = 0; y < w->size_y; ++y)	
-			if (get_cell(w, x, y))
-				world_to_save[x * w->size_y + y] = '1';
-			else 
-				world_to_save[x * w->size_y + y] = '0';
-	}
-	
-	fwrite(world_to_save, sizeof(char), (w->size_x * w->size_y), f);
-
-	free(world_to_save);
+	fwrite(&w->size_x, sizeof(int), 1, f);
+	fwrite(&w->size_y, sizeof(int), 1, f);
+	fwrite(w->cells[W_WORLD_MAIN], sizeof(bool), (w->size_x * w->size_y), f);
 
 	fclose(f);
 
 	printf("Game saved in file: %s\n", config->save_file);
 
-}
-
-void world_restore(struct config *config, struct world *w)
-{
-	FILE *f;
-	f = fopen(config->restore_file, "r");
-	if (!f){
-		perror("Error al abrir el fichero para restaurar el mundo\n");
-
-	} else {	
-		char lectura[w->size_x * w->size_y];
-
-		fread(lectura, sizeof (char), (w->size_x * w->size_y), f); 
-		
-		// Init del mundo
-		char *world_to_restore = (char *)malloc((w->size_x * w->size_y) * sizeof(char));
-		if (!world_to_restore){
-			perror("Error al crear el buffer para recuperar el mundo\n");
-			exit(EXIT_FAILURE);
-		}
-
-		int x, y;
-		for (x = 0 ; x < w->size_x ; x++){
-			for (y = 0; y < w->size_y; ++y){
-				if ((lectura[(x * w->size_y) + y]) == '1'){
-					set_cell(w, W_WORLD_MAIN, x, y, true);
-				}
-				else if (lectura[x * w->size_y + y] == '0'){
-					set_cell(w, W_WORLD_MAIN, x, y, false);	
-				}
-			}
-		}
-	
-		fclose(f);
-
-		free(world_to_restore);
-
-		printf("Game restored from file: %s\n", config->restore_file);
-	}
 }

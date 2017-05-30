@@ -1,5 +1,4 @@
 #include "config.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,13 +37,8 @@ int config_parse_argv(struct config *config, int argc, char *argv[])
 	config->size_y       = 0;
 	config->init_mode    = 0;
 	config->cfg_file     = NULL;
-	config->flag_save    = false;
-	config->flag_restore = false;
-	int i;
-	for (i = 0; i < LINE_LEN; i++){
-		config->save_file[i] = ' ';
-		config->save_file[i] = ' ';
-	}
+	config->save_file    = NULL;
+	config->restore_file = NULL;
 
 	while ((c = getopt_long(argc, argv, "hx:y:i:s:r:", long_options,
 				&option_index)) != -1) {
@@ -62,14 +56,11 @@ int config_parse_argv(struct config *config, int argc, char *argv[])
 			config->init_mode = str2init_mode(optarg);
 			break;
 		case 's':
-			strcpy(config->save_file, optarg);
-			config->flag_save = true;
+			config->save_file = optarg;
 			break;
 		case 'r':
-			strcpy(config->restore_file, optarg);
-			config->flag_restore = true;
+			config->restore_file = optarg;
 			break;
-
 		default:
 			printf("Error entrada\n");
 			exit(EXIT_FAILURE);
@@ -96,6 +87,10 @@ static bool check_config(const struct config *config)
 
 	if (config->show_help)
 		return true;
+
+	if (config->restore_file)
+		return true;
+
 	correct &= config->size_x > 0;
 	correct &= config->size_y > 0;
 	correct &= (config->init_mode > CFG_NOT_DEF && config->init_mode < _CFG_MAX_);
@@ -186,33 +181,6 @@ static bool load_config(struct config *config)
 		*ptr_scan = '\0'; 
 
 	config->init_mode = str2init_mode((const char *)line);
-
-	// save to file
-	fgets(config->save_file, LINE_LEN, file);
-	if (ferror(file)) {
-		perror("Error reading config file");
-		return false;
-	}
-	// Eliminacion del caracter de salto de linea
-	ptr_scan = strchr(config->save_file, '\n');
-	if (ptr_scan != NULL) 
-		*ptr_scan = '\0';
-
-	config->flag_save = true;
-
-	// restore from file
-	fgets(config->restore_file, LINE_LEN, file);
-	if (ferror(file)) {
-		perror("Error reading config file");
-		return false;
-	}
-
-	// Eliminacion del caracter de salto de linea
-	ptr_scan = strchr(config->restore_file, '\n');
-	if (ptr_scan != NULL) 
-		*ptr_scan = '\0';
-
-	config->flag_restore = true;
 
 	fclose (file);
 

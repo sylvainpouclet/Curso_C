@@ -16,7 +16,7 @@ clean:
 	rm game_of_life
 
 check_leak:
-	valgrind --leak-check=full ./game_of_life config.txt
+	valgrind --leak-check=full ./game_of_life -r game.txt
 
 run:
 	./game_of_life -x 20 -y 20 -i glider
